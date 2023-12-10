@@ -1,0 +1,17 @@
+---
+version: "3.9"
+services:
+  tinymediamanager:
+    image: tinymediamanager/tinymediamanager
+    container_name: tinymediamanager
+    volumes:
+      - ~/docker-persistence-storage/tinymediamanager/assets/:/www/assets
+      - ~/docker-persistence-storage/tinymediamanager/data:/data
+      - ~/Movies:/media/movies
+      - ~/TVSeries:/media/tvseries
+    ports:
+      - 4000:4000
+    environment:
+     - UID=1000
+     - GID=1000
+    restart: unless-stopped
