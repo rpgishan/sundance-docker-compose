@@ -1,0 +1,19 @@
+version: '3.9'
+services:
+    motioneye:
+        image: ccrisan/motioneye:master-amd64
+        container_name: motioneye
+        hostname: motioneye_server
+        ports:
+            - 8765:8765
+#        network_mode: "bridge"
+#        privileged: true
+#        shm_size: 512M
+        environment:
+            - TZ=${TZ:-Europe/London}
+        volumes:
+            - ~/docker-persistent-storage/motioneye/config:/etc/motioneye
+            - ~/docker-persistent-storage/motioneye/videos:/var/lib/motioneye
+            - ~/Media/motioneye:/mnt/disk
+            - /etc/localtime:/etc/localtime:ro
+        restart: unless-stopped
