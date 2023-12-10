@@ -1,0 +1,16 @@
+---
+version: "3.9"
+services:
+  prowlarr:
+    image: linuxserver/prowlarr:develop
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - ~/docker-persistence-storage/prowlarr/config:/config
+      - ~/docker-persistence-storage/prowlarr/backups:/backups
+    ports:
+      - 9696:9696
+    restart: unless-stopped
