@@ -1,0 +1,22 @@
+---
+version: "3.9"
+services:
+  handbrake:
+    image: jlesage/handbrake
+    container_name: handbrake
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - APP_NAME="HandBrake"
+      - AUTOMATED_CONVERSION_PRESET="General/Very Fast 1080p30"
+      - AUTOMATED_CONVERSION_FORMAT="mp4"
+    volumes:
+      - ~/docker-persistence-storage/handbrake/config:/config:rw
+      - ~/docker-persistence-storage/handbrake/watch:/watch:rw
+      - ~/docker-persistence-storage/handbrake/output:/output:rw
+      - ~/Media:/storage:ro
+    ports:
+      - 5800:5800
+    restart: unless-stopped
+    
