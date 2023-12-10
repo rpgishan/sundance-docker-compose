@@ -1,0 +1,19 @@
+version: '3.9'
+services:
+    zoneminder:
+        image: zoneminderhq/zoneminder
+        container_name: zoneminder
+        ports:
+            - 8888:80
+#        network_mode: "bridge"
+#        privileged: true
+        shm_size: 512M
+        environment:
+            - TZ=Europe/London
+        volumes:
+            - ~/docker-persistent-storage/zoneminder/events:/var/cache/zoneminder/events
+            - ~/docker-persistent-storage/zoneminder/images:/var/cache/zoneminder/images
+            - ~/docker-persistent-storage/zoneminder/mysql:/var/lib/mysql
+            - ~/docker-persistent-storage/zoneminder/logs:/var/log/zoneminder
+            - ~/Media/zoneminder/videos:/videos
+        restart: unless-stopped
