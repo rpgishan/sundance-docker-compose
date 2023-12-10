@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  shinobi:
+    image: shinobi
+    container_name: shinobi
+    #user: "1000:1000"
+    volumes:
+      - ~/Media/Shinobi/:/home/Shinobi/videos
+      - ~/docker-persistent-storage/shinobi/plugins:/home/Shinobi/plugins
+      - ~/docker-persistent-storage/shinobi/libs/customAutoLoad:/home/Shinobi/libs/customAutoLoad
+      - ~/docker-persistent-storage/shinobi/config:/config
+      - ~/docker-persistent-storage/shinobi/mysql:/var/lib/mysql
+      - ~/docker-persistent-storage/shinobi/backup:/backup
+      - /dev/shm/streams:/dev/shm/streams
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - 8080:8880
+    restart: unless-stopped
