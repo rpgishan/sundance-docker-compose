@@ -1,0 +1,16 @@
+---
+version: "3.9"
+services:
+  duplicati:
+    image: duplicati/duplicati
+    container_name: duplicati
+    hostname: sundance
+    environment:
+      - TZ=Europe/London
+    volumes:
+      - ~/docker-persistence-storage/duplicati/data:/data
+      - ~/:/source/home
+      - /etc/docker:/source/docker
+    ports:
+      - 8200:8200
+    restart: unless-stopped
