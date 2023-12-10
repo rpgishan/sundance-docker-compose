@@ -1,0 +1,292 @@
+version: "3.9"
+services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    hostname: watchtower_media_server
+    environment:
+      - TZ=Europe/London
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_SCHEDULE=0 0 4 * * *
+      - WATCHTOWER_TIMEOUT=60s
+      - WATCHTOWER_NOTIFICATIONS=slack
+      - WATCHTOWER_NOTIFICATION_SLACK_IDENTIFIER=watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    hostname: jellyfin_server
+    user: 1000:1000
+    environment:
+      - TZ=Europe/London
+#       - JELLYFIN_PublishedServerUrl=http://example.com # Optional - alternative address used for autodiscovery
+    volumes:
+      - ~/docker-persistence-storage/jellyfin/config:/config
+      - ~/docker-persistence-storage/jellyfin/cache:/cache
+      - ~/docker-persistence-storage/jellyfin/media:/media
+      - ~/TVSeries:/tvseries
+      - ~/Movies:/movies
+    ports:
+      - 8096:8096
+      - 8920:8920 #optional
+      - 7359:7359/udp #optional
+      - 1901:1900/udp #optional
+#    devices:
+#      - /dev/dri:/dev/dri # VAAPI/NVDEC/NVENC render nodes
+    restart: unless-stopped
+
+  plex:
+    image: linuxserver/plex
+    container_name: plex
+    hostname: plex_server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - VERSION=docker
+#      - PLEX_CLAIM=claim-1234 #optional
+      - SYSCALL_MAX_ENABLED=1
+    volumes:
+      - ~/docker-persistence-storage/plex/config:/config
+      - ~/TVSeries:/tvseries
+      - ~/Movies:/movies
+    ports:
+      - 32400:32400/tcp
+      - 3005:3005/tcp
+      - 8324:8324/tcp
+      - 32469:32469/tcp
+      - 1900:1900/udp
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+    restart: unless-stopped
+
+  emby:
+    image: linuxserver/emby
+    container_name: emby
+    hostname: emby_server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - ~/docker-persistence-storage/emby/config:/config # Configuration directory
+      - ~/TVSeries:/tvseries
+      - ~/Movies:/movies
+    ports:
+      - 8095:8096
+      - 8921:8920 #optional
+#    devices:
+#      - /dev/dri:/dev/dri #optional
+#      - /dev/vchiq:/dev/vchiq #optional
+#      - /dev/video10:/dev/video10 #optional
+#      - /dev/video11:/dev/video11 #optional
+#      - /dev/video12:/dev/video12 #optional
+    restart: unless-stopped
+
+  transmission:
+    image: linuxserver/transmission
+    container_name: transmission
+    hostname: transmission_server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+#      - TRANSMISSION_WEB_HOME=/combustion-release/ #optional
+      - USER=user #optional
+      - PASS=youshallpass #optional
+#       - WHITELIST=iplist #optional
+#       - HOST_WHITELIST=dnsnane list #optional
+    volumes:
+      - ~/docker-persistence-storage/transmission/config:/config
+      - ~/docker-persistence-storage/transmission/watch:/watch
+      - ~/Downloads:/downloads
+    ports:
+      - 9091:9091
+      - 51413:51413
+      - 51413:51413/udp
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    hostname: sonarr_server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - ~/docker-persistence-storage/sonarr/config:/config
+      - ~/docker-persistence-storage/sonarr/backups:/backups
+      - ~/Downloads:/downloads
+      - ~/Movies/TV Series:/tvseries
+      - ~/Movies/RecycleBin:/recycle_bin
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+    depends_on:
+      - transmission
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    hostname: radarr_server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - ~/docker-persistence-storage/radarr/config:/config
+      - ~/docker-persistence-storage/radarr/backups:/backups
+      - ~/Downloads:/downloads
+      - ~/Movies/Movies:/movies
+      - ~/Movies/RecycleBin:/recycle_bin
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+    depends_on:
+      - transmission
+
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    hostname: bazarr_server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - ~/docker-persistence-storage/bazarr/config:/config
+      - ~/Movies/TV Series:/tvseries
+      - ~/Movies/Movies:/movies
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+    depends_on:
+      - sonarr
+      - radarr
+
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    hostname: jackett_server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - AUTO_UPDATE=true #optional
+#       - RUN_OPTS=<run options here> #optional
+    volumes:
+      - ~/docker-persistence-storage/jackett/config:/config
+      - ~/Downloads:/downloads
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+
+  prowlarr:
+    image: linuxserver/prowlarr
+    container_name: prowlarr
+    hostname: prowlarr_server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - ~/docker-persistence-storage/prowlarr/config:/config
+      - ~/docker-persistence-storage/prowlarr/backups:/backups
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+    depends_on:
+      - transmission
+      - sonarr
+      - radarr
+
+  overseerr:
+    image: linuxserver/overseerr
+    container_name: overseerr
+    hostname: overseerr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - ~/docker-persistence-storage/overseerr/config:/config
+    ports:
+      - 5055:5055
+    restart: unless-stopped
+    depends_on:
+      - plex
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr
+    container_name: jellyseerr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - ~/docker-persistence-storage/jellyseerr/config:/app/config
+    ports:
+      - 5056:5055
+    restart: unless-stopped
+    depends_on:
+      - jellyfin
+      - emby
+      - plex
+
+  tautulli:
+    image: linuxserver/tautulli
+    container_name: tautulli
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - ~/docker-persistence-storage/tautulli/config:/config
+    ports:
+      - 8181:8181
+    restart: unless-stopped
+    depends_on:
+      - plex
+
+  handbrake:
+    image: jlesage/handbrake
+    container_name: handbrake
+    hostname: handbrake_server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - APP_NAME="HandBrake"
+      - AUTOMATED_CONVERSION_PRESET="General/Very Fast 1080p30"
+      - AUTOMATED_CONVERSION_FORMAT="mp4"
+    volumes:
+      - ~/docker-persistence-storage/handbrake/config:/config:rw
+      - ~/docker-persistence-storage/handbrake/watch:/watch:rw
+      - ~/docker-persistence-storage/handbrake/output:/output:rw
+      - ~/Movies/TV Series:/tvseries
+      - ~/Movies/Movies:/movies
+    ports:
+      - 5800:5800
+    restart: unless-stopped
+
+  tinymediamanager:
+    image: tinymediamanager/tinymediamanager
+    container_name: tinymediamanager
+    hostname: tinymediamanager_server
+    environment:
+      - UID=1000
+      - GID=1000
+    volumes:
+      - ~/docker-persistence-storage/tinymediamanager/assets/:/www/assets
+      - ~/docker-persistence-storage/tinymediamanager/data:/data
+      - ~/TVSeries:/tvseries
+      - ~/Movies:/movies
+    ports:
+      - 4000:4000
+    restart: unless-stopped
